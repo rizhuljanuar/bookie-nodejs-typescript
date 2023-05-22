@@ -1,9 +1,10 @@
-import * as dotenv from "dotenv";
-import { DataSource } from "typeorm";
-import { Author } from "../database/entities/Author";
-import { Book } from "./entities/Book";
+import * as dotenv from "dotenv"
+import { DataSource } from "typeorm"
+import { Author } from "../database/entities/Author"
+import { Book } from "./entities/Book"
+import { User } from "./entities/User"
 
-dotenv.config();
+dotenv.config()
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -14,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE || "bookie",
   logging: ["query"],
   synchronize: false,
-  entities: [Author, Book],
+  entities: [Author, Book, User],
   subscribers: [],
   migrations: ["src/database/migrations/*.ts"],
-});
+})

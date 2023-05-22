@@ -4,7 +4,7 @@ import { Book } from "../../database/entities/Book";
 import { Paginator } from "../../database/Paginator";
 import { ResponseUtl } from "../../utils/Response";
 import { CreateBookDTO, UpdateBookDTO } from "../dtos/BookDTO";
-import { validateOrReject } from "class-validator";
+import { validate, validateOrReject } from "class-validator";
 
 export class BooksController {
   async getBooks(req: Request, res: Response) {
@@ -19,7 +19,7 @@ export class BooksController {
     );
 
     const bookData = books.map((book: Book) => {
-      return book;
+      return book.toPayload();
     });
 
     return ResponseUtl.sendResponse(
@@ -40,11 +40,11 @@ export class BooksController {
     return ResponseUtl.sendResponse<Partial<Book>>(
       res,
       "Fetch book successfuly",
-      book
+      book.toPayload()
     );
   }
 
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response): Promise<Response> {
     const bookData = req.body;
     bookData.image = req.file?.filename;
 
@@ -53,7 +53,11 @@ export class BooksController {
     dto.price = parseInt(bookData.price);
     dto.authorId = parseInt(bookData.authorId);
 
-    await validateOrReject(dto);
+    const errors = await validate(dto);
+
+    if (errors.length > 0) {
+      return ResponseUtl.sendError(res, "Invalid data", errors, 422);
+    }
 
     const repo = AppDataSource.getRepository(Book);
     const book = repo.create(bookData);
@@ -62,15 +66,20 @@ export class BooksController {
     return ResponseUtl.sendResponse(res, "create book successfuly", book);
   }
 
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response): Promise<Response> {
     const { id } = req.params;
     const bookData = req.body;
 
     const dto = new UpdateBookDTO();
     Object.assign(dto, bookData);
-    dto.id = parseInt(bookData.id);
+    dto.id = parseInt(id);
+    dto.authorId = parseInt(bookData.authorId);
+    dto.price = parseInt(bookData.price);
 
-    await validateOrReject(dto);
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      return ResponseUtl.sendError(res, "Invalid data", errors, 422);
+    }
 
     const repo = AppDataSource.getRepository(Book);
     const book = await repo.findOneByOrFail({
@@ -83,7 +92,7 @@ export class BooksController {
     return ResponseUtl.sendResponse(res, "update book successfuly", book);
   }
 
-  async delete(req: Request, res: Response) {
+  async delete(req: Request, res: Response): Promise<Response> {
     const { id } = req.params;
     const repo = AppDataSource.getRepository(Book);
     const book = await repo.findOneByOrFail({

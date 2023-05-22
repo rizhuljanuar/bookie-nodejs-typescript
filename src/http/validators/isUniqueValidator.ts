@@ -23,7 +23,7 @@ export class IsUniqueConstraint implements ValidatorConstraintInterface {
     let count = 0;
 
     if (!isUpdate) {
-      count = await repository.count({ [field]: value });
+      count = await repository.count({ where: { [field]: value } });
     } else {
       count = await repository.count({
         where: { [field]: value, id: Not(args.object["id"]) },
