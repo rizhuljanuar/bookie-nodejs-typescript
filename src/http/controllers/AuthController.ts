@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { loginDTO, registerDTO } from "../dtos/AuthDTO"
-import { validate, validateOrReject } from "class-validator"
+import { validate } from "class-validator"
 import { AppDataSource } from "../../database/data-source"
 import { User } from "../../database/entities/User"
 import { ResponseUtl } from "../../utils/Response"
@@ -35,12 +35,10 @@ export class AuthController {
     dto.email = email
     dto.password = password
 
-    await validateOrReject(dto)
-
-    // const errors = await validate(dto)
-    // if (errors.length > 0) {
-    //   return ResponseUtl.sendError(res, "Invalid data", errors, 422)
-    // }
+    const errors = await validate(dto)
+    if (errors.length > 0) {
+      return ResponseUtl.sendError(res, "Invalid data", errors, 422)
+    }
 
     const repo = AppDataSource.getRepository(User)
     const user = await repo.findOneBy({ email })
