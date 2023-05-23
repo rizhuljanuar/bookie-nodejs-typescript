@@ -11,7 +11,7 @@ const bookRoute = express.Router()
 
 bookRoute.get(
   "/",
-  ErrorHandler.catchErrors(AuthMiddleware.authenticate),
+  //  ErrorHandler.catchErrors(AuthMiddleware.authenticate),
   ErrorHandler.catchErrors(bookController.getBooks)
 )
 bookRoute.get(
